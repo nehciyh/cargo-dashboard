@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>出貨管理系統</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #F5F4F0;
+  --bg2:      #FFFFFF;
+  --bg3:      #EEECEA;
+  --bg4:      #E5E3DF;
+  --border:   #D8D5D0;
+  --border2:  #C8C4BE;
+  --text:     #1A1814;
+  --text2:    #5C574F;
+  --text3:    #9B9590;
+  --accent:   #2563EB;
+  --accent-l: #EEF2FF;
+  --green:    #16A34A;
+  --green-l:  #DCFCE7;
+  --amber:    #D97706;
+  --amber-l:  #FEF3C7;
+  --blue:     #2563EB;
+  --blue-l:   #DBEAFE;
+  --red:      #DC2626;
+  --red-l:    #FEE2E2;
+  --purple:   #7C3AED;
+  --purple-l: #EDE9FE;
+  --mono: 'DM Mono', monospace;
+  --sans: 'Noto Sans TC', sans-serif;
+  --radius: 10px;
+  --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.08), 0 2px 4px rgba(0,0,0,.04);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; }
+body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+
+/* HEADER */
+.header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 0 1.25rem; height: 54px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 200; box-shadow: var(--shadow); }
+.logo { display: flex; align-items: center; gap: 9px; font-weight: 700; font-size: 15px; color: var(--text); letter-spacing: -.01em; }
+.logo-box { width: 30px; height: 30px; background: var(--accent); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 15px; color: #fff; box-shadow: 0 2px 6px rgba(37,99,235,.3); }
+.header-right { display: flex; align-items: center; gap: 8px; }
+.sync-info { font-size: 11px; color: var(--text3); font-family: var(--mono); }
+.btn-sm { background: var(--bg3); border: 1px solid var(--border); color: var(--text2); padding: 5px 11px; border-radius: 7px; cursor: pointer; font-size: 12px; font-family: var(--sans); font-weight: 500; transition: all .15s; white-space: nowrap; }
+.btn-sm:hover { background: var(--bg4); border-color: var(--border2); }
+
+/* PAGE */
+.page { max-width: 1320px; margin: 0 auto; padding: 1.25rem 1.25rem 4rem; }
+
+/* STATS */
+.stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 1.25rem; }
+.stat { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
+.stat::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; border-radius: 0 0 var(--radius) var(--radius); }
+.stat.s-green::after { background: var(--green); }
+.stat.s-blue::after  { background: var(--blue); }
+.stat.s-amber::after { background: var(--amber); }
+.stat.s-gray::after  { background: var(--text3); }
+.stat-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 6px; font-weight: 500; }
+.stat-val { font-size: 26px; font-weight: 700; font-family: var(--mono); line-height: 1; margin-bottom: 2px; }
+.s-green .stat-val { color: var(--green); }
+.s-blue  .stat-val { color: var(--blue); }
+.s-amber .stat-val { color: var(--amber); }
+.s-gray  .stat-val { color: var(--text2); }
+.stat-sub { font-size: 11px; color: var(--text3); }
+
+/* TOOLBAR */
+.toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap; }
+.view-toggle { display: flex; background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 3px; gap: 2px; flex-shrink: 0; }
+.vt-btn { padding: 5px 13px; border-radius: 6px; border: none; background: transparent; color: var(--text3); font-size: 13px; font-family: var(--sans); font-weight: 500; cursor: pointer; transition: all .15s; }
+.vt-btn.active { background: var(--bg2); color: var(--text); box-shadow: var(--shadow); }
+.controls { display: flex; gap: 8px; flex: 1; flex-wrap: wrap; align-items: center; }
+.search-wrap { position: relative; flex: 1; min-width: 180px; }
+.search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 13px; pointer-events: none; }
+.search-input { width: 100%; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 7px 10px 7px 32px; color: var(--text); font-family: var(--sans); font-size: 13px; outline: none; transition: border-color .15s, box-shadow .15s; box-shadow: var(--shadow); }
+.search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+.search-input::placeholder { color: var(--text3); }
+select.sel { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 7px 28px 7px 10px; color: var(--text); font-family: var(--sans); font-size: 13px; outline: none; cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%239B9590' d='M5 7L1 3h8z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 9px center; box-shadow: var(--shadow); }
+select.sel:focus { border-color: var(--accent); }
+.count-info { font-size: 12px; color: var(--text3); font-family: var(--mono); margin-left: auto; white-space: nowrap; }
+
+/* TABLE */
+.table-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-md); }
+.tbl-scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead tr { background: var(--bg3); border-bottom: 1.5px solid var(--border); }
+th { padding: 9px 13px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .07em; white-space: nowrap; cursor: pointer; user-select: none; }
+th:hover { color: var(--text2); }
+th.sorted { color: var(--accent); }
+tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; cursor: pointer; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--bg3); }
+td { padding: 9px 13px; color: var(--text); vertical-align: middle; white-space: nowrap; }
+td.mono { font-family: var(--mono); font-size: 12px; color: var(--text2); }
+td.muted { color: var(--text3); font-size: 12px; }
+td.qty { font-family: var(--mono); font-weight: 600; }
+
+/* BADGES */
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+.b-done     { background: var(--green-l);  color: var(--green); }
+.b-transfer { background: var(--blue-l);   color: var(--blue); }
+.b-hold     { background: var(--amber-l);  color: var(--amber); }
+.b-check    { background: var(--purple-l); color: var(--purple); }
+.b-wait     { background: var(--red-l);    color: var(--red); }
+.b-other    { background: var(--bg3);      color: var(--text3); }
+.bdot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; display: inline-block; }
+
+/* PAGINATION */
+.pagination { display: flex; align-items: center; justify-content: center; gap: 5px; padding: .875rem; border-top: 1px solid var(--border); }
+.pg-btn { background: var(--bg2); border: 1px solid var(--border); color: var(--text2); width: 30px; height: 30px; border-radius: 7px; cursor: pointer; font-size: 12px; font-family: var(--mono); transition: all .15s; }
+.pg-btn:hover { border-color: var(--accent); color: var(--accent); }
+.pg-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.pg-btn:disabled { opacity: .35; cursor: not-allowed; }
+.pg-dots { color: var(--text3); padding: 0 3px; }
+
+/* CALENDAR */
+.cal-wrap { display: none; }
+.cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; box-shadow: var(--shadow); }
+.cal-title { font-size: 15px; font-weight: 700; color: var(--text); }
+.cal-arrows { display: flex; gap: 6px; }
+.cal-arr { background: var(--bg3); border: 1px solid var(--border); color: var(--text2); width: 30px; height: 30px; border-radius: 7px; cursor: pointer; font-size: 16px; line-height: 1; transition: all .15s; }
+.cal-arr:hover { background: var(--bg4); }
+.cal-grid { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-md); }
+.cal-header { display: grid; grid-template-columns: repeat(7,1fr); border-bottom: 1.5px solid var(--border); background: var(--bg3); }
+.cal-dow { padding: 8px 0; text-align: center; font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .07em; }
+.cal-dow.weekend { color: var(--red); }
+.cal-body { display: grid; grid-template-columns: repeat(7,1fr); }
+.cal-day { min-height: 96px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 6px; }
+.cal-day:nth-child(7n) { border-right: none; }
+.cal-day.other-month { background: var(--bg3); }
+.cal-day.today { background: var(--accent-l); }
+.cal-day-num { font-size: 12px; font-weight: 600; font-family: var(--mono); color: var(--text3); margin-bottom: 4px; text-align: right; }
+.cal-day.today .cal-day-num { color: var(--accent); }
+.today-pill { display: inline-block; background: var(--accent); color: #fff; border-radius: 12px; width: 20px; height: 20px; line-height: 20px; text-align: center; font-size: 11px; font-weight: 700; }
+.cal-day.other-month .cal-day-num { color: var(--border2); }
+.cal-event { font-size: 10px; padding: 2px 5px; border-radius: 4px; margin-bottom: 2px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; transition: opacity .1s; }
+.cal-event:hover { opacity: .75; }
+.ce-done     { background: var(--green-l);  color: var(--green); }
+.ce-transfer { background: var(--blue-l);   color: var(--blue); }
+.ce-hold     { background: var(--amber-l);  color: var(--amber); }
+.ce-wait     { background: var(--red-l);    color: var(--red); }
+.ce-other    { background: var(--bg3);      color: var(--text2); }
+.cal-more { font-size: 10px; color: var(--accent); cursor: pointer; font-weight: 600; padding: 1px 3px; }
+.cal-more:hover { text-decoration: underline; }
+
+/* MODAL */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.3); z-index: 500; align-items: center; justify-content: center; padding: 1rem; backdrop-filter: blur(3px); }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; width: 100%; max-width: 520px; box-shadow: 0 20px 60px rgba(0,0,0,.12); overflow: hidden; animation: slideUp .2s ease; }
+@keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.modal-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--bg3); }
+.modal-title { font-size: 14px; font-weight: 700; }
+.modal-close { background: none; border: none; cursor: pointer; color: var(--text3); font-size: 20px; line-height: 1; padding: 2px 6px; border-radius: 5px; }
+.modal-close:hover { background: var(--bg4); color: var(--text); }
+.modal-body { padding: 16px 18px; }
+.modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+.modal-field { margin-bottom: 11px; }
+.field-label { font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 3px; }
+.field-val { font-size: 13px; color: var(--text); }
+.field-val.mono { font-family: var(--mono); font-size: 12px; color: var(--text2); }
+
+/* EMPTY / LOADING */
+.empty { text-align: center; padding: 3rem; color: var(--text3); }
+.empty-icon { font-size: 32px; margin-bottom: 10px; }
+.empty-text { font-size: 13px; }
+.loading { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 3rem; color: var(--text3); font-size: 13px; }
+.spinner { width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* MOBILE */
+@media (max-width: 640px) {
+  .stats { grid-template-columns: repeat(2,1fr); }
+  .cal-day { min-height: 60px; }
+  .sync-info { display: none; }
+  .modal-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo">
+    <div class="logo-box">📦</div>
+    出貨管理系統
+  </div>
+  <div class="header-right">
+    <span class="sync-info" id="syncTime">尚未載入</span>
+    <button class="btn-sm" onclick="loadData()">↻ 更新</button>
+  </div>
+</header>
+
+<main class="page">
+
+  <div class="stats">
+    <div class="stat s-green">
+      <div class="stat-label">出貨完畢</div>
+      <div class="stat-val" id="sDone">—</div>
+      <div class="stat-sub" id="sDonePct">—</div>
+    </div>
+    <div class="stat s-blue">
+      <div class="stat-label">訂單轉移</div>
+      <div class="stat-val" id="sXfer">—</div>
+      <div class="stat-sub">待後續處理</div>
+    </div>
+    <div class="stat s-amber">
+      <div class="stat-label">待確認</div>
+      <div class="stat-val" id="sOther">—</div>
+      <div class="stat-sub">需人工確認</div>
+    </div>
+    <div class="stat s-gray">
+      <div class="stat-label">總訂單</div>
+      <div class="stat-val" id="sTotal">—</div>
+      <div class="stat-sub" id="sTotalQty">—</div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="view-toggle">
+      <button class="vt-btn active" id="btnTable" onclick="switchView('table')">☰ 列表</button>
+      <button class="vt-btn" id="btnCal" onclick="switchView('cal')">▦ 月曆</button>
+    </div>
+    <div class="controls">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input class="search-input" id="searchInput" type="text"
+          placeholder="搜尋客戶、品名、加工方式…" oninput="applyFilters()">
+      </div>
+      <select class="sel" id="fCust" onchange="applyFilters()"><option value="">所有客戶</option></select>
+      <select class="sel" id="fStatus" onchange="applyFilters()">
+        <option value="">所有狀態</option>
+        <option value="done">✅ 出貨完畢</option>
+        <option value="transfer">🔁 訂單轉移</option>
+        <option value="other">⚠ 其他</option>
+      </select>
+      <select class="sel" id="fProduct" onchange="applyFilters()"><option value="">所有品名</option></select>
+      <span class="count-info" id="countLabel">—</span>
+    </div>
+  </div>
+
+  <!-- TABLE VIEW -->
+  <div id="tableView">
+    <div class="table-card">
+      <div class="tbl-scroll">
+        <table>
+          <thead><tr>
+            <th onclick="sortBy('date')">進貨日期 <span id="arr-date">↕</span></th>
+            <th onclick="sortBy('customer')">客戶 <span id="arr-customer">↕</span></th>
+            <th onclick="sortBy('product')">品名 <span id="arr-product">↕</span></th>
+            <th>狀態</th>
+            <th>幾分</th>
+            <th onclick="sortBy('spec')">規格 <span id="arr-spec">↕</span></th>
+            <th onclick="sortBy('qty')">數量 <span id="arr-qty">↕</span></th>
+            <th>加工</th>
+            <th>下一關</th>
+            <th>備註</th>
+            <th onclick="sortBy('order')">貨單編號 <span id="arr-order">↕</span></th>
+          </tr></thead>
+          <tbody id="tableBody">
+            <tr><td colspan="11"><div class="loading"><div class="spinner"></div>等待載入…</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination" id="pagination"></div>
+    </div>
+  </div>
+
+  <!-- CALENDAR VIEW -->
+  <div class="cal-wrap" id="calView">
+    <div class="cal-nav">
+      <div class="cal-arrows">
+        <button class="cal-arr" onclick="calMove(-1)">‹</button>
+        <button class="cal-arr" onclick="calMove(1)">›</button>
+      </div>
+      <div class="cal-title" id="calTitle">—</div>
+      <button class="btn-sm" onclick="calToday()">今天</button>
+    </div>
+    <div class="cal-grid">
+      <div class="cal-header" id="calHeader"></div>
+      <div class="cal-body" id="calBody"></div>
+    </div>
+  </div>
+
+</main>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="outsideClose(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitle">訂單詳情</span>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+// ══ 設定 ══════════════════════════════════════════════
+// 把你的 OneDrive 共用連結貼到這裡
+const ONEDRIVE_URL = 'https://1drv.ms/x/c/5e3f389546c30f8b/IQDy-YlHC9GAQYjXR3sB2q4GASHKHaMz2BuXmmX6Y3qmrW8?e=obl3hu';
+
+const PAGE_SIZE = 50;
+const DOW_LABELS = ['一','二','三','四','五','六','日'];
+
+// ══ 狀態 ══════════════════════════════════════════════
+let allRows = [], filtered = [];
+let currentPage = 1, sortCol = 'date', sortDir = -1;
+let currentView = 'table';
+let calYear, calMonth;
+
+// ══ 初始化 ════════════════════════════════════════════
+window.onload = () => {
+  const url = localStorage.getItem('cargo_url') || ONEDRIVE_URL;
+  if (url) loadData(url);
+  const now = new Date();
+  calYear = now.getFullYear(); calMonth = now.getMonth();
+  buildCalHeader();
+};
+
+// ══ 資料載入 ══════════════════════════════════════════
+async function loadData(rawUrl) {
+  const url = normalizeUrl(rawUrl || localStorage.getItem('cargo_url') || ONEDRIVE_URL);
+  if (!url) return;
+  setLoading();
+  try {
+    let text;
+    try {
+      const r = await fetch(url, { mode:'cors' });
+      if (!r.ok) throw 0;
+      text = await r.text();
+    } catch {
+      const r = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(url));
+      text = await r.text();
+    }
+    allRows = parseCSV(text);
+    updateStats(); buildFilters(); applyFilters();
+    if (currentView === 'cal') renderCal();
+    document.getElementById('syncTime').textContent =
+      '更新 ' + new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+  } catch(e) {
+    showMsg('⚠ 無法載入資料，請確認 OneDrive 連結設定');
+  }
+}
+
+function normalizeUrl(raw) {
+  if (!raw) return '';
+  if (raw.includes('onedrive.live.com') || raw.includes('1drv.ms')) {
+    let u = raw.replace('/embed?','/download?').replace('redir?','download?');
+    if (!u.includes('download=1') && !u.includes('/download?')) u = u.replace('?','?download=1&');
+    return u;
+  }
+  if (raw.includes('docs.google.com')) return raw.replace('/edit','/export?format=csv');
+  return raw;
+}
+
+// ══ CSV 解析 ══════════════════════════════════════════
+function parseCSV(text) {
+  const lines = text.split('\n').map(l=>l.trim()).filter(Boolean);
+  if (lines.length < 2) return [];
+  const delim = lines[0].includes('\t') ? '\t' : ',';
+  const hdrs = split(lines[0], delim);
+  const col = h => hdrs.findIndex(x => x.includes(h));
+
+  const iDate=col('進貨日期'), iCust=col('客戶'), iOrder=col('貨單編號');
+  const iProd=col('品名'), iFen=col('幾分'), iSpec=col('規格');
+  const iQty=col('數量'), iProc=col('加工'), iNext=col('下一關');
+  const iNote=col('備註'), iStat=col('出貨狀況');
+
+  const SKIP=['440','415','50BV30','材質','鍛品來源','#N/A','品名','客戶'];
+  return lines.slice(1).map(l => {
+    const c = split(l, delim);
+    if (c.length < 5) return null;
+    const cust = (c[iCust>=0?iCust:1]||'').trim();
+    if (!cust || SKIP.includes(cust) || /^\d{5,}$/.test(cust)) return null;
+    const serial = parseFloat(c[iDate>=0?iDate:0]);
+    return {
+      date: toDateStr(serial), dateSerial: serial,
+      customer: cust,
+      order:   (c[iOrder>=0?iOrder:3]  ||'').trim(),
+      product: (c[iProd >=0?iProd :6]  ||'').trim(),
+      fen:     (c[iFen  >=0?iFen  :7]  ||'').trim(),
+      spec:    (c[iSpec >=0?iSpec :8]  ||'').trim(),
+      qty:      parseInt(c[iQty>=0?iQty:10])||0,
+      process: (c[iProc >=0?iProc :12] ||'').trim(),
+      next:    (c[iNext >=0?iNext :14] ||'').trim(),
+      note:    (c[iNote >=0?iNote :15] ||'').trim(),
+      status:  (c[iStat >=0?iStat :16] ||'').trim(),
+    };
+  }).filter(Boolean);
+}
+
+function split(line, delim) {
+  if (delim==='\t') return line.split('\t');
+  const r=[]; let cur='', q=false;
+  for(const ch of line){ if(ch==='"') q=!q; else if(ch===','&&!q){r.push(cur);cur='';} else cur+=ch; }
+  return [...r, cur];
+}
+
+function toDateStr(s) {
+  if (!s || isNaN(s)) return '—';
+  const d = new Date((s-25569)*86400000);
+  return isNaN(d) ? '—' : d.toLocaleDateString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit'});
+}
+
+function toJSDate(s) {
+  if (!s || isNaN(s)) return null;
+  return new Date((s-25569)*86400000);
+}
+
+// ══ 狀態分類 ══════════════════════════════════════════
+function classify(s) {
+  if (!s) return 'other';
+  if (s.includes('出貨完畢')) return 'done';
+  if (s.includes('訂單轉移')||s.includes('🔁')) return 'transfer';
+  if (s.includes('暫不出')||s.includes('車好')) return 'hold';
+  if (s.includes('待檢')||s.includes('🔍')) return 'check';
+  if (s.includes('等待加工')||s.includes('廠內')) return 'wait';
+  return 'other';
+}
+
+function badge(s) {
+  const m={done:['b-done','出貨完畢'],transfer:['b-transfer','訂單轉移'],hold:['b-hold','暫不出'],check:['b-check','待檢查'],wait:['b-wait','待加工'],other:['b-other',s||'—']};
+  const [c,l]=m[classify(s)];
+  return `<span class="badge ${c}"><span class="bdot"></span>${x(l)}</span>`;
+}
+
+function calCls(s){return{done:'ce-done',transfer:'ce-transfer',hold:'ce-hold',wait:'ce-wait',check:'ce-hold',other:'ce-other'}[classify(s)];}
+
+// ══ 統計 ══════════════════════════════════════════════
+function updateStats() {
+  const n=allRows.length, done=allRows.filter(r=>classify(r.status)==='done').length;
+  const xfer=allRows.filter(r=>classify(r.status)==='transfer').length;
+  const qty=allRows.reduce((s,r)=>s+r.qty,0);
+  set('sDone',done.toLocaleString()); set('sDonePct',n?Math.round(done/n*100)+'% 完成率':'—');
+  set('sXfer',xfer.toLocaleString()); set('sOther',(n-done-xfer).toLocaleString());
+  set('sTotal',n.toLocaleString()); set('sTotalQty',qty.toLocaleString()+' 件');
+}
+
+// ══ 篩選 ══════════════════════════════════════════════
+function buildFilters() {
+  const custs=[...new Set(allRows.map(r=>r.customer).filter(Boolean))].sort();
+  const prods=[...new Set(allRows.map(r=>r.product).filter(Boolean))].sort();
+  const cs=document.getElementById('fCust'), pv=cs.value;
+  cs.innerHTML='<option value="">所有客戶</option>'+custs.map(c=>`<option value="${x(c)}">${x(c)}</option>`).join('');
+  cs.value=pv;
+  const ps=document.getElementById('fProduct'), pp=ps.value;
+  ps.innerHTML='<option value="">所有品名</option>'+prods.map(p=>`<option value="${x(p)}">${x(p)}</option>`).join('');
+  ps.value=pp;
+}
+
+function applyFilters() {
+  const q=document.getElementById('searchInput').value.trim().toLowerCase();
+  const cust=document.getElementById('fCust').value;
+  const stat=document.getElementById('fStatus').value;
+  const prod=document.getElementById('fProduct').value;
+  filtered=allRows.filter(r=>{
+    if(cust&&r.customer!==cust) return false;
+    if(prod&&r.product!==prod) return false;
+    if(stat){const c=classify(r.status);if(stat==='done'&&c!=='done') return false;if(stat==='transfer'&&c!=='transfer') return false;if(stat==='other'&&(c==='done'||c==='transfer')) return false;}
+    if(q){const h=[r.customer,r.order,r.product,r.process,r.note,r.next,r.spec].join(' ').toLowerCase();if(!h.includes(q)) return false;}
+    return true;
+  });
+  filtered.sort((a,b)=>{
+    if(sortCol==='date') return (a.dateSerial-b.dateSerial)*sortDir;
+    if(sortCol==='qty')  return (a.qty-b.qty)*sortDir;
+    const va=(a[sortCol]||'').toLowerCase(), vb=(b[sortCol]||'').toLowerCase();
+    return(va<vb?-1:va>vb?1:0)*sortDir;
+  });
+  currentPage=1;
+  set('countLabel',filtered.length.toLocaleString()+' 筆');
+  renderTable();
+}
+
+function sortBy(col) {
+  sortCol===col?sortDir*=-1:(sortCol=col,sortDir=-1);
+  document.querySelectorAll('th').forEach(t=>t.classList.remove('sorted'));
+  const el=document.getElementById('arr-'+col);
+  if(el){el.closest('th').classList.add('sorted');el.textContent=sortDir===-1?'↓':'↑';}
+  applyFilters();
+}
+
+// ══ 表格渲染 ══════════════════════════════════════════
+function renderTable() {
+  const start=(currentPage-1)*PAGE_SIZE, page=filtered.slice(start,start+PAGE_SIZE);
+  const tbody=document.getElementById('tableBody');
+  if(!page.length){
+    tbody.innerHTML=`<tr><td colspan="11"><div class="empty"><div class="empty-icon">🔍</div><div class="empty-text">找不到符合條件的紀錄</div></div></td></tr>`;
+    set('pagination',''); return;
+  }
+  tbody.innerHTML=page.map((r,i)=>`
+    <tr onclick="openModal(${start+i})">
+      <td class="mono">${x(r.date)}</td>
+      <td><strong>${x(r.customer)}</strong></td>
+      <td>${x(r.product)}</td>
+      <td>${badge(r.status)}</td>
+      <td class="muted">${x(r.fen)}</td>
+      <td class="mono">${x(r.spec)}</td>
+      <td class="qty">${r.qty>0?r.qty.toLocaleString():'—'}</td>
+      <td class="muted">${x(r.process)}</td>
+      <td class="muted">${x(r.next)}</td>
+      <td class="muted">${x(r.note)}</td>
+      <td class="mono">${x(r.order)}</td>
+    </tr>`).join('');
+  renderPagination();
+}
+
+function renderPagination() {
+  const total=Math.ceil(filtered.length/PAGE_SIZE);
+  const pag=document.getElementById('pagination');
+  if(total<=1){pag.innerHTML='';return;}
+  let h=`<button class="pg-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>`;
+  const range=[1];
+  if(currentPage>3) range.push('…');
+  for(let i=Math.max(2,currentPage-1);i<=Math.min(total-1,currentPage+1);i++) range.push(i);
+  if(currentPage<total-2) range.push('…');
+  if(total>1) range.push(total);
+  for(const r of range) h+=r==='…'?`<span class="pg-dots">…</span>`:`<button class="pg-btn ${r===currentPage?'active':''}" onclick="goPage(${r})">${r}</button>`;
+  h+=`<button class="pg-btn" onclick="goPage(${currentPage+1})" ${currentPage===total?'disabled':''}>›</button>`;
+  pag.innerHTML=h;
+}
+
+function goPage(p){const t=Math.ceil(filtered.length/PAGE_SIZE);if(p<1||p>t) return;currentPage=p;renderTable();window.scrollTo({top:0,behavior:'smooth'});}
+
+// ══ Modal ═════════════════════════════════════════════
+function openModal(idx) {
+  const r=filtered[idx]; if(!r) return;
+  showModal(r);
+}
+function showModal(r) {
+  set('modalTitle', x(r.customer)+'　'+x(r.product));
+  set('modalBody',`
+    <div class="modal-grid">
+      <div class="modal-field"><div class="field-label">狀態</div><div>${badge(r.status)}</div></div>
+      <div class="modal-field"><div class="field-label">進貨日期</div><div class="field-val mono">${x(r.date)}</div></div>
+      <div class="modal-field"><div class="field-label">客戶</div><div class="field-val">${x(r.customer)}</div></div>
+      <div class="modal-field"><div class="field-label">品名</div><div class="field-val">${x(r.product)}</div></div>
+      <div class="modal-field"><div class="field-label">幾分</div><div class="field-val mono">${x(r.fen)}</div></div>
+      <div class="modal-field"><div class="field-label">規格</div><div class="field-val mono">${x(r.spec)}</div></div>
+      <div class="modal-field"><div class="field-label">數量</div><div class="field-val mono">${r.qty>0?r.qty.toLocaleString():'—'}</div></div>
+      <div class="modal-field"><div class="field-label">加工</div><div class="field-val">${x(r.process)}</div></div>
+      <div class="modal-field"><div class="field-label">下一關</div><div class="field-val">${x(r.next)}</div></div>
+      <div class="modal-field"><div class="field-label">貨單編號</div><div class="field-val mono">${x(r.order)}</div></div>
+    </div>
+    ${r.note?`<div class="modal-field" style="margin-top:4px"><div class="field-label">備註</div><div class="field-val">${x(r.note)}</div></div>`:''}
+  `);
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open');}
+function outsideClose(e){if(e.target===document.getElementById('modalOverlay')) closeModal();}
+document.addEventListener('keydown',e=>{if(e.key==='Escape') closeModal();});
+
+// ══ 視圖切換 ══════════════════════════════════════════
+function switchView(v) {
+  currentView=v;
+  document.getElementById('tableView').style.display=v==='table'?'':'none';
+  document.getElementById('calView').style.display=v==='cal'?'':'none';
+  document.getElementById('btnTable').classList.toggle('active',v==='table');
+  document.getElementById('btnCal').classList.toggle('active',v==='cal');
+  if(v==='cal'&&allRows.length) renderCal();
+}
+
+// ══ 月曆 ══════════════════════════════════════════════
+function buildCalHeader(){
+  document.getElementById('calHeader').innerHTML=
+    DOW_LABELS.map((d,i)=>`<div class="cal-dow${i>=5?' weekend':''}">${d}</div>`).join('');
+}
+
+function calMove(dir){calMonth+=dir;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}renderCal();}
+function calToday(){const n=new Date();calYear=n.getFullYear();calMonth=n.getMonth();renderCal();}
+
+function renderCal(){
+  document.getElementById('calTitle').textContent=`${calYear} 年 ${calMonth+1} 月`;
+  // build date→rows map
+  const map={};
+  for(const r of allRows){
+    const d=toJSDate(r.dateSerial);if(!d) continue;
+    const k=`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    if(!map[k]) map[k]=[];
+    map[k].push(r);
+  }
+  const first=new Date(calYear,calMonth,1);
+  let dow=first.getDay(); dow=dow===0?6:dow-1; // Mon=0
+  const dim=new Date(calYear,calMonth+1,0).getDate();
+  const dimPrev=new Date(calYear,calMonth,0).getDate();
+  const today=new Date();
+  const total=Math.ceil((dow+dim)/7)*7;
+  let html='';
+  for(let i=0;i<total;i++){
+    let day,mo,yr,other=false;
+    if(i<dow){day=dimPrev-dow+i+1;mo=calMonth-1;yr=calYear;if(mo<0){mo=11;yr--;}other=true;}
+    else if(i>=dow+dim){day=i-dow-dim+1;mo=calMonth+1;yr=calYear;if(mo>11){mo=0;yr++;}other=true;}
+    else{day=i-dow+1;mo=calMonth;yr=calYear;}
+    const isToday=!other&&yr===today.getFullYear()&&mo===today.getMonth()&&day===today.getDate();
+    const k=`${yr}-${mo}-${day}`;
+    const evts=map[k]||[];
+    const numH=isToday?`<div class="cal-day-num"><span class="today-pill">${day}</span></div>`:`<div class="cal-day-num">${day}</div>`;
+    const MAX=3;
+    const evH=evts.slice(0,MAX).map(r=>`<div class="cal-event ${calCls(r.status)}" onclick="event.stopPropagation();showModal(${JSON.stringify(r).replace(/"/g,'&quot;')})" title="${x(r.customer)} ${x(r.product)}">${x(r.customer)} ${x(r.product)}</div>`).join('');
+    const moreH=evts.length>MAX?`<div class="cal-more">+${evts.length-MAX}</div>`:'';
+    html+=`<div class="cal-day${other?' other-month':''}${isToday?' today':''}">${numH}${evH}${moreH}</div>`;
+  }
+  document.getElementById('calBody').innerHTML=html;
+}
+
+// ══ Helpers ═══════════════════════════════════════════
+function x(s){if(!s||s==='—') return '—';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function set(id,v){const el=document.getElementById(id);if(el) el.innerHTML=v;}
+function setLoading(){set('tableBody',`<tr><td colspan="11"><div class="loading"><div class="spinner"></div>載入中…</div></td></tr>`);}
+function showMsg(m){set('tableBody',`<tr><td colspan="11"><div class="empty"><div class="empty-icon">⚠️</div><div class="empty-text">${m}</div></div></td></tr>`);}
+</script>
+</body>
+</html>
