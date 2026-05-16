@@ -16,14 +16,15 @@ jobs:
 
       - name: 下載最新 CSV
         run: |
-          curl -L "${{ secrets.ONEDRIVE_CSV_URL }}" \
+          curl -L "${{ secrets.CSV_URL }}" \
             --max-time 30 --retry 3 \
             -o data.csv
           if [ ! -s data.csv ]; then
-            echo "下載失敗或檔案是空的"
+            echo "檔案是空的"
             exit 1
           fi
           echo "成功，行數：$(wc -l < data.csv)"
+          head -2 data.csv
 
       - name: 推送更新到 GitHub
         run: |
