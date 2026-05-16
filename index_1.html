@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>出貨管理系統</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#F5F4F0; --bg2:#FFFFFF; --bg3:#EEECEA; --bg4:#E5E3DF;
+  --border:#D8D5D0; --border2:#C8C4BE;
+  --text:#1A1814; --text2:#5C574F; --text3:#9B9590;
+  --accent:#2563EB; --accent-l:#EEF2FF;
+  --green:#16A34A; --green-l:#DCFCE7;
+  --amber:#D97706; --amber-l:#FEF3C7;
+  --blue:#2563EB; --blue-l:#DBEAFE;
+  --red:#DC2626; --red-l:#FEE2E2;
+  --purple:#7C3AED; --purple-l:#EDE9FE;
+  --mono:'DM Mono',monospace; --sans:'Noto Sans TC',sans-serif;
+  --r:10px; --sh:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+  --shm:0 4px 12px rgba(0,0,0,.08),0 2px 4px rgba(0,0,0,.04);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:14px;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;-webkit-font-smoothing:antialiased;}
+
+/* HEADER */
+.hdr{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 1.25rem;height:54px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:var(--sh);}
+.logo{display:flex;align-items:center;gap:9px;font-weight:700;font-size:15px;}
+.logo-box{width:30px;height:30px;background:var(--accent);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;box-shadow:0 2px 6px rgba(37,99,235,.3);}
+.hdr-r{display:flex;align-items:center;gap:8px;}
+.sync{font-size:11px;color:var(--text3);font-family:var(--mono);}
+.btn{background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:5px 11px;border-radius:7px;cursor:pointer;font-size:12px;font-family:var(--sans);font-weight:500;transition:all .15s;white-space:nowrap;}
+.btn:hover{background:var(--bg4);border-color:var(--border2);}
+
+/* PAGE */
+.page{max-width:1320px;margin:0 auto;padding:1.25rem 1.25rem 4rem;}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem;}
+.stat{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;box-shadow:var(--sh);position:relative;overflow:hidden;}
+.stat::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;border-radius:0 0 var(--r) var(--r);}
+.s-g::after{background:var(--green);} .s-b::after{background:var(--blue);} .s-a::after{background:var(--amber);} .s-x::after{background:var(--text3);}
+.slb{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:500;}
+.sv{font-size:26px;font-weight:700;font-family:var(--mono);line-height:1;margin-bottom:2px;}
+.s-g .sv{color:var(--green);} .s-b .sv{color:var(--blue);} .s-a .sv{color:var(--amber);} .s-x .sv{color:var(--text2);}
+.ss{font-size:11px;color:var(--text3);}
+
+/* TOOLBAR */
+.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:1rem;flex-wrap:wrap;}
+.vt{display:flex;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:3px;gap:2px;flex-shrink:0;}
+.vtb{padding:5px 13px;border-radius:6px;border:none;background:transparent;color:var(--text3);font-size:13px;font-family:var(--sans);font-weight:500;cursor:pointer;transition:all .15s;}
+.vtb.on{background:var(--bg2);color:var(--text);box-shadow:var(--sh);}
+.ctrls{display:flex;gap:8px;flex:1;flex-wrap:wrap;align-items:center;}
+.sw{position:relative;flex:1;min-width:180px;}
+.si{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px;pointer-events:none;}
+.si-inp{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:7px 10px 7px 32px;color:var(--text);font-family:var(--sans);font-size:13px;outline:none;transition:border-color .15s,box-shadow .15s;box-shadow:var(--sh);}
+.si-inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.1);}
+.si-inp::placeholder{color:var(--text3);}
+select.sel{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:7px 28px 7px 10px;color:var(--text);font-family:var(--sans);font-size:13px;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%239B9590' d='M5 7L1 3h8z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center;box-shadow:var(--sh);}
+select.sel:focus{border-color:var(--accent);}
+.ci{font-size:12px;color:var(--text3);font-family:var(--mono);margin-left:auto;white-space:nowrap;}
+
+/* TABLE */
+.tc{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shm);}
+.tsc{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead tr{background:var(--bg3);border-bottom:1.5px solid var(--border);}
+th{padding:9px 13px;text-align:left;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;white-space:nowrap;cursor:pointer;user-select:none;}
+th:hover{color:var(--text2);} th.sorted{color:var(--accent);}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s;cursor:pointer;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:var(--bg3);}
+td{padding:9px 13px;color:var(--text);vertical-align:middle;white-space:nowrap;}
+td.mo{font-family:var(--mono);font-size:12px;color:var(--text2);}
+td.mu{color:var(--text3);font-size:12px;}
+td.qt{font-family:var(--mono);font-weight:600;}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;}
+.bd{background:var(--green-l);color:var(--green);}
+.bt{background:var(--blue-l);color:var(--blue);}
+.bh{background:var(--amber-l);color:var(--amber);}
+.bc{background:var(--purple-l);color:var(--purple);}
+.bw{background:var(--red-l);color:var(--red);}
+.bo{background:var(--bg3);color:var(--text3);}
+.dot{width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block;}
+
+/* PAGINATION */
+.pag{display:flex;align-items:center;justify-content:center;gap:5px;padding:.875rem;border-top:1px solid var(--border);}
+.pb{background:var(--bg2);border:1px solid var(--border);color:var(--text2);width:30px;height:30px;border-radius:7px;cursor:pointer;font-size:12px;font-family:var(--mono);transition:all .15s;}
+.pb:hover{border-color:var(--accent);color:var(--accent);}
+.pb.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+.pb:disabled{opacity:.35;cursor:not-allowed;}
+.pdots{color:var(--text3);padding:0 3px;}
+
+/* ── CALENDAR ── */
+.cw{display:none;}
+.cnav{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:10px 14px;box-shadow:var(--sh);}
+.ctitle{font-size:15px;font-weight:700;color:var(--text);}
+.carr-w{display:flex;gap:6px;}
+.carr{background:var(--bg3);border:1px solid var(--border);color:var(--text2);width:30px;height:30px;border-radius:7px;cursor:pointer;font-size:16px;line-height:28px;text-align:center;transition:all .15s;}
+.carr:hover{background:var(--bg4);}
+.cgrid{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shm);}
+.chdr{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1.5px solid var(--border);background:var(--bg3);}
+.cdow{padding:9px 0;text-align:center;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;}
+.cdow.we{color:var(--red);}
+.cbody{display:grid;grid-template-columns:repeat(7,1fr);}
+.cday{min-height:100px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:6px;}
+.cday:nth-child(7n){border-right:none;}
+.cday.om{background:var(--bg3);}
+.cday.td{background:var(--accent-l);}
+.cdnum{font-size:12px;font-weight:600;font-family:var(--mono);color:var(--text3);margin-bottom:4px;text-align:right;line-height:1;}
+.cday.td .cdnum{color:var(--accent);}
+.cday.om .cdnum{color:var(--border2);}
+.today-pill{display:inline-flex;align-items:center;justify-content:center;background:var(--accent);color:#fff;border-radius:50%;width:20px;height:20px;font-size:11px;font-weight:700;}
+.cev{font-size:10px;padding:2px 5px;border-radius:4px;margin-bottom:2px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500;}
+.cev:hover{opacity:.75;}
+.ced{background:var(--green-l);color:var(--green);}
+.cet{background:var(--blue-l);color:var(--blue);}
+.ceh{background:var(--amber-l);color:var(--amber);}
+.cew{background:var(--red-l);color:var(--red);}
+.ceo{background:var(--bg4);color:var(--text2);}
+.cmore{font-size:10px;color:var(--accent);cursor:pointer;font-weight:600;padding:1px 3px;}
+.cmore:hover{text-decoration:underline;}
+
+/* EMPTY STATE (used in calendar too) */
+.empty-cal{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3rem;color:var(--text3);grid-column:1/-1;}
+.empty-icon{font-size:32px;margin-bottom:10px;}
+.empty-text{font-size:13px;}
+
+/* MODAL */
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:500;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(3px);}
+.ov.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:14px;width:100%;max-width:520px;box-shadow:0 20px 60px rgba(0,0,0,.12);overflow:hidden;animation:up .2s ease;}
+@keyframes up{from{transform:translateY(10px);opacity:0}to{transform:translateY(0);opacity:1}}
+.mhdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg3);}
+.mtitle{font-size:14px;font-weight:700;}
+.mclose{background:none;border:none;cursor:pointer;color:var(--text3);font-size:20px;line-height:1;padding:2px 6px;border-radius:5px;}
+.mclose:hover{background:var(--bg4);color:var(--text);}
+.mbody{padding:16px 18px;}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;}
+.mf{margin-bottom:11px;}
+.fl{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;}
+.fv{font-size:13px;color:var(--text);}
+.fv.mo{font-family:var(--mono);font-size:12px;color:var(--text2);}
+
+/* LOADING / MSG */
+.loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:3rem;color:var(--text3);font-size:13px;}
+.spin{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:3rem;color:var(--text3);}
+
+@media(max-width:640px){
+  .stats{grid-template-columns:repeat(2,1fr);}
+  .cday{min-height:64px;}
+  .sync{display:none;}
+  .mgrid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="logo"><div class="logo-box">📦</div>出貨管理系統</div>
+  <div class="hdr-r">
+    <span class="sync" id="syncTime">尚未載入</span>
+    <button class="btn" onclick="loadData()">↻ 更新</button>
+  </div>
+</header>
+
+<main class="page">
+  <div class="stats">
+    <div class="stat s-g"><div class="slb">出貨完畢</div><div class="sv" id="sDone">—</div><div class="ss" id="sDonePct">—</div></div>
+    <div class="stat s-b"><div class="slb">訂單轉移</div><div class="sv" id="sXfer">—</div><div class="ss">待後續處理</div></div>
+    <div class="stat s-a"><div class="slb">待確認</div><div class="sv" id="sOther">—</div><div class="ss">需人工確認</div></div>
+    <div class="stat s-x"><div class="slb">總訂單</div><div class="sv" id="sTotal">—</div><div class="ss" id="sTotalQty">—</div></div>
+  </div>
+
+  <div class="toolbar">
+    <div class="vt">
+      <button class="vtb on" id="btnTable" onclick="switchView('table')">☰ 列表</button>
+      <button class="vtb" id="btnCal" onclick="switchView('cal')">▦ 月曆</button>
+    </div>
+    <div class="ctrls" id="tableCtrl">
+      <div class="sw"><span class="si">🔍</span><input class="si-inp" id="searchInput" type="text" placeholder="搜尋客戶、品名、加工方式…" oninput="applyFilters()"></div>
+      <select class="sel" id="fCust" onchange="applyFilters()"><option value="">所有客戶</option></select>
+      <select class="sel" id="fStat" onchange="applyFilters()">
+        <option value="">所有狀態</option>
+        <option value="done">✅ 出貨完畢</option>
+        <option value="transfer">🔁 訂單轉移</option>
+        <option value="other">⚠ 其他</option>
+      </select>
+      <select class="sel" id="fProd" onchange="applyFilters()"><option value="">所有品名</option></select>
+      <span class="ci" id="countLabel">—</span>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div id="tableView">
+    <div class="tc">
+      <div class="tsc">
+        <table>
+          <thead><tr>
+            <th onclick="sortBy('date')">進貨日期 <span id="arr-date">↕</span></th>
+            <th onclick="sortBy('customer')">客戶 <span id="arr-customer">↕</span></th>
+            <th onclick="sortBy('product')">品名 <span id="arr-product">↕</span></th>
+            <th>狀態</th>
+            <th>幾分</th>
+            <th onclick="sortBy('spec')">規格 <span id="arr-spec">↕</span></th>
+            <th onclick="sortBy('qty')">數量 <span id="arr-qty">↕</span></th>
+            <th>加工</th>
+            <th>下一關</th>
+            <th>備註</th>
+            <th onclick="sortBy('order')">貨單編號 <span id="arr-order">↕</span></th>
+          </tr></thead>
+          <tbody id="tbody">
+            <tr><td colspan="11"><div class="loading"><div class="spin"></div>等待載入…</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pag" id="pag"></div>
+    </div>
+  </div>
+
+  <!-- CALENDAR -->
+  <div class="cw" id="calView">
+    <div class="cnav">
+      <div class="carr-w">
+        <button class="carr" onclick="calMove(-1)">‹</button>
+        <button class="carr" onclick="calMove(1)">›</button>
+      </div>
+      <div class="ctitle" id="calTitle">—</div>
+      <button class="btn" onclick="calToday()">今天</button>
+    </div>
+    <div class="cgrid">
+      <div class="chdr" id="calHdr"></div>
+      <div class="cbody" id="calBody"></div>
+    </div>
+  </div>
+</main>
+
+<!-- MODAL -->
+<div class="ov" id="ov" onclick="ocClose(event)">
+  <div class="modal">
+    <div class="mhdr"><span class="mtitle" id="mtitle">訂單詳情</span><button class="mclose" onclick="closeModal()">×</button></div>
+    <div class="mbody" id="mbody"></div>
+  </div>
+</div>
+
+<script>
+// ══ 設定 ══════════════════════════════════════════════════════
+// 資料檔案路徑：放在同一個 GitHub repository 裡的 data.csv
+const CSV_PATH = 'data.csv';
+const PAGE_SIZE = 50;
+const DOW = ['一','二','三','四','五','六','日'];
+
+// ══ 狀態 ══════════════════════════════════════════════════════
+let allRows = [], filtered = [];
+let curPage = 1, sortCol = 'date', sortDir = -1;
+let view = 'table';
+let calY, calM;
+
+// ══ 初始化 ════════════════════════════════════════════════════
+window.onload = () => {
+  const now = new Date();
+  calY = now.getFullYear(); calM = now.getMonth();
+  buildCalHdr();
+  loadData();
+};
+
+// ══ 資料載入 ══════════════════════════════════════════════════
+async function loadData() {
+  setLoading();
+  try {
+    const r = await fetch(CSV_PATH + '?t=' + Date.now());
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const text = await r.text();
+    allRows = parseCSV(text);
+    updateStats(); buildFilters(); applyFilters();
+    if (view === 'cal') renderCal();
+    document.getElementById('syncTime').textContent =
+      '更新 ' + new Date().toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit'});
+  } catch(e) {
+    showMsg('找不到 data.csv，請確認檔案已上傳到 GitHub repository 根目錄');
+  }
+}
+
+// ══ CSV 解析 ══════════════════════════════════════════════════
+function parseCSV(text) {
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  if (lines.length < 2) return [];
+  const delim = lines[0].includes('\t') ? '\t' : ',';
+  const hdrs = splitLine(lines[0], delim);
+  const col = h => hdrs.findIndex(x => x.includes(h));
+
+  const iDate=col('進貨日期'), iCust=col('客戶'), iOrder=col('貨單編號');
+  const iProd=col('品名'), iFen=col('幾分'), iSpec=col('規格');
+  const iQty=col('數量'), iProc=col('加工'), iNext=col('下一關');
+  const iNote=col('備註'), iStat=col('出貨狀況');
+
+  const SKIP = ['440','415','50BV30','材質','鍛品來源','#N/A','品名','客戶'];
+  return lines.slice(1).map(l => {
+    const c = splitLine(l, delim);
+    if (c.length < 5) return null;
+    const cust = (c[iCust >= 0 ? iCust : 1] || '').trim();
+    if (!cust || SKIP.includes(cust) || /^\d{5,}$/.test(cust)) return null;
+    const serial = parseFloat(c[iDate >= 0 ? iDate : 0]);
+    return {
+      date: toDate(serial), dateSerial: serial, customer: cust,
+      order:   trim(c, iOrder,  3),
+      product: trim(c, iProd,   6),
+      fen:     trim(c, iFen,    7),
+      spec:    trim(c, iSpec,   8),
+      qty:     parseInt(c[iQty >= 0 ? iQty : 10]) || 0,
+      process: trim(c, iProc,  12),
+      next:    trim(c, iNext,  14),
+      note:    trim(c, iNote,  15),
+      status:  trim(c, iStat,  16),
+    };
+  }).filter(Boolean);
+}
+
+function trim(c, i, def) { return (c[i >= 0 ? i : def] || '').trim(); }
+
+function splitLine(line, delim) {
+  if (delim === '\t') return line.split('\t');
+  const r = []; let cur = '', q = false;
+  for (const ch of line) {
+    if (ch === '"') q = !q;
+    else if (ch === ',' && !q) { r.push(cur); cur = ''; }
+    else cur += ch;
+  }
+  return [...r, cur];
+}
+
+function toDate(s) {
+  if (!s || isNaN(s)) return '—';
+  const d = new Date((s - 25569) * 86400000);
+  return isNaN(d) ? '—' : d.toLocaleDateString('zh-TW', {year:'numeric',month:'2-digit',day:'2-digit'});
+}
+function toJSDate(s) {
+  if (!s || isNaN(s)) return null;
+  return new Date((s - 25569) * 86400000);
+}
+
+// ══ 狀態 ══════════════════════════════════════════════════════
+function cls(s) {
+  if (!s) return 'o';
+  if (s.includes('出貨完畢')) return 'd';
+  if (s.includes('訂單轉移') || s.includes('🔁')) return 't';
+  if (s.includes('暫不出') || s.includes('車好')) return 'h';
+  if (s.includes('待檢') || s.includes('🔍')) return 'c';
+  if (s.includes('等待加工') || s.includes('廠內')) return 'w';
+  return 'o';
+}
+const BADGE_CFG = {
+  d: ['bd','出貨完畢'], t: ['bt','訂單轉移'], h: ['bh','暫不出'],
+  c: ['bc','待檢查'],  w: ['bw','待加工'],   o: ['bo','']
+};
+function badge(s) {
+  const [bc, label] = BADGE_CFG[cls(s)];
+  return `<span class="badge ${bc}"><span class="dot"></span>${x(label || s || '—')}</span>`;
+}
+const CAL_CLS = {d:'ced',t:'cet',h:'ceh',c:'ceh',w:'cew',o:'ceo'};
+
+// ══ 統計 ══════════════════════════════════════════════════════
+function updateStats() {
+  const n = allRows.length;
+  const done = allRows.filter(r => cls(r.status) === 'd').length;
+  const xfer = allRows.filter(r => cls(r.status) === 't').length;
+  const qty  = allRows.reduce((s,r) => s + r.qty, 0);
+  $('sDone', done.toLocaleString());
+  $('sDonePct', n ? Math.round(done/n*100)+'% 完成率' : '—');
+  $('sXfer', xfer.toLocaleString());
+  $('sOther', (n - done - xfer).toLocaleString());
+  $('sTotal', n.toLocaleString());
+  $('sTotalQty', qty.toLocaleString() + ' 件');
+}
+
+// ══ 篩選 ══════════════════════════════════════════════════════
+function buildFilters() {
+  const custs = [...new Set(allRows.map(r => r.customer).filter(Boolean))].sort();
+  const prods = [...new Set(allRows.map(r => r.product).filter(Boolean))].sort();
+  const cs = document.getElementById('fCust'), pv = cs.value;
+  cs.innerHTML = '<option value="">所有客戶</option>' + custs.map(c => `<option value="${x(c)}">${x(c)}</option>`).join('');
+  cs.value = pv;
+  const ps = document.getElementById('fProd'), pp = ps.value;
+  ps.innerHTML = '<option value="">所有品名</option>' + prods.map(p => `<option value="${x(p)}">${x(p)}</option>`).join('');
+  ps.value = pp;
+}
+
+function applyFilters() {
+  const q    = document.getElementById('searchInput').value.trim().toLowerCase();
+  const cust = document.getElementById('fCust').value;
+  const stat = document.getElementById('fStat').value;
+  const prod = document.getElementById('fProd').value;
+
+  filtered = allRows.filter(r => {
+    if (cust && r.customer !== cust) return false;
+    if (prod && r.product !== prod) return false;
+    if (stat) {
+      const c = cls(r.status);
+      if (stat === 'done'     && c !== 'd') return false;
+      if (stat === 'transfer' && c !== 't') return false;
+      if (stat === 'other'    && (c === 'd' || c === 't')) return false;
+    }
+    if (q) {
+      const hay = [r.customer,r.order,r.product,r.process,r.note,r.next,r.spec].join(' ').toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  filtered.sort((a, b) => {
+    if (sortCol === 'date') return (a.dateSerial - b.dateSerial) * sortDir;
+    if (sortCol === 'qty')  return (a.qty - b.qty) * sortDir;
+    const va = (a[sortCol]||'').toLowerCase(), vb = (b[sortCol]||'').toLowerCase();
+    return (va < vb ? -1 : va > vb ? 1 : 0) * sortDir;
+  });
+
+  curPage = 1;
+  $('countLabel', filtered.length.toLocaleString() + ' 筆');
+  renderTable();
+}
+
+function sortBy(col) {
+  sortCol === col ? sortDir *= -1 : (sortCol = col, sortDir = -1);
+  document.querySelectorAll('th').forEach(t => t.classList.remove('sorted'));
+  const el = document.getElementById('arr-' + col);
+  if (el) { el.closest('th').classList.add('sorted'); el.textContent = sortDir === -1 ? '↓' : '↑'; }
+  applyFilters();
+}
+
+// ══ 表格 ══════════════════════════════════════════════════════
+function renderTable() {
+  const start = (curPage - 1) * PAGE_SIZE;
+  const page  = filtered.slice(start, start + PAGE_SIZE);
+  const tbody = document.getElementById('tbody');
+
+  if (!page.length) {
+    tbody.innerHTML = `<tr><td colspan="11"><div class="empty"><div class="empty-icon">🔍</div><div>找不到符合條件的紀錄</div></div></td></tr>`;
+    $('pag', ''); return;
+  }
+  tbody.innerHTML = page.map((r, i) => `
+    <tr onclick="openModal(${start+i})">
+      <td class="mo">${x(r.date)}</td>
+      <td><strong>${x(r.customer)}</strong></td>
+      <td>${x(r.product)}</td>
+      <td>${badge(r.status)}</td>
+      <td class="mu">${x(r.fen)}</td>
+      <td class="mo">${x(r.spec)}</td>
+      <td class="qt">${r.qty > 0 ? r.qty.toLocaleString() : '—'}</td>
+      <td class="mu">${x(r.process)}</td>
+      <td class="mu">${x(r.next)}</td>
+      <td class="mu">${x(r.note)}</td>
+      <td class="mo">${x(r.order)}</td>
+    </tr>`).join('');
+  renderPag();
+}
+
+function renderPag() {
+  const total = Math.ceil(filtered.length / PAGE_SIZE);
+  const pag = document.getElementById('pag');
+  if (total <= 1) { pag.innerHTML = ''; return; }
+  let h = `<button class="pb" onclick="goPage(${curPage-1})" ${curPage===1?'disabled':''}>‹</button>`;
+  const rng = [1];
+  if (curPage > 3) rng.push('…');
+  for (let i = Math.max(2, curPage-1); i <= Math.min(total-1, curPage+1); i++) rng.push(i);
+  if (curPage < total-2) rng.push('…');
+  if (total > 1) rng.push(total);
+  for (const r of rng) h += r === '…' ? `<span class="pdots">…</span>` : `<button class="pb ${r===curPage?'on':''}" onclick="goPage(${r})">${r}</button>`;
+  h += `<button class="pb" onclick="goPage(${curPage+1})" ${curPage===total?'disabled':''}>›</button>`;
+  pag.innerHTML = h;
+}
+
+function goPage(p) {
+  const t = Math.ceil(filtered.length / PAGE_SIZE);
+  if (p < 1 || p > t) return;
+  curPage = p; renderTable();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// ══ Modal ═════════════════════════════════════════════════════
+function openModal(idx) { showModal(filtered[idx]); }
+function showModal(r) {
+  if (!r) return;
+  $('mtitle', x(r.customer) + '　' + x(r.product));
+  $('mbody', `
+    <div class="mgrid">
+      <div class="mf"><div class="fl">狀態</div><div>${badge(r.status)}</div></div>
+      <div class="mf"><div class="fl">進貨日期</div><div class="fv mo">${x(r.date)}</div></div>
+      <div class="mf"><div class="fl">客戶</div><div class="fv">${x(r.customer)}</div></div>
+      <div class="mf"><div class="fl">品名</div><div class="fv">${x(r.product)}</div></div>
+      <div class="mf"><div class="fl">幾分</div><div class="fv mo">${x(r.fen)}</div></div>
+      <div class="mf"><div class="fl">規格</div><div class="fv mo">${x(r.spec)}</div></div>
+      <div class="mf"><div class="fl">數量</div><div class="fv mo">${r.qty > 0 ? r.qty.toLocaleString() : '—'}</div></div>
+      <div class="mf"><div class="fl">加工</div><div class="fv">${x(r.process)}</div></div>
+      <div class="mf"><div class="fl">下一關</div><div class="fv">${x(r.next)}</div></div>
+      <div class="mf"><div class="fl">貨單編號</div><div class="fv mo">${x(r.order)}</div></div>
+    </div>
+    ${r.note ? `<div class="mf" style="margin-top:4px"><div class="fl">備註</div><div class="fv">${x(r.note)}</div></div>` : ''}
+  `);
+  document.getElementById('ov').classList.add('open');
+}
+function closeModal() { document.getElementById('ov').classList.remove('open'); }
+function ocClose(e) { if (e.target === document.getElementById('ov')) closeModal(); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// ══ 視圖切換 ══════════════════════════════════════════════════
+function switchView(v) {
+  view = v;
+  document.getElementById('tableView').style.display = v === 'table' ? '' : 'none';
+  document.getElementById('calView').style.display   = v === 'cal'   ? '' : 'none';
+  document.getElementById('btnTable').classList.toggle('on', v === 'table');
+  document.getElementById('btnCal').classList.toggle('on', v === 'cal');
+  if (v === 'cal') renderCal();
+}
+
+// ══ 月曆 ══════════════════════════════════════════════════════
+function buildCalHdr() {
+  document.getElementById('calHdr').innerHTML =
+    DOW.map((d, i) => `<div class="cdow${i >= 5 ? ' we' : ''}">週${d}</div>`).join('');
+}
+
+function calMove(dir) {
+  calM += dir;
+  if (calM > 11) { calM = 0; calY++; }
+  if (calM < 0)  { calM = 11; calY--; }
+  renderCal();
+}
+function calToday() {
+  const n = new Date(); calY = n.getFullYear(); calM = n.getMonth(); renderCal();
+}
+
+function renderCal() {
+  $('calTitle', `${calY} 年 ${calM + 1} 月`);
+
+  // Build date map from data
+  const map = {};
+  for (const r of allRows) {
+    const d = toJSDate(r.dateSerial);
+    if (!d) continue;
+    const k = d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate();
+    if (!map[k]) map[k] = [];
+    map[k].push(r);
+  }
+
+  // Calculate grid
+  const first = new Date(calY, calM, 1);
+  let dow = first.getDay(); // 0=Sun
+  dow = dow === 0 ? 6 : dow - 1; // Mon=0
+
+  const dim     = new Date(calY, calM + 1, 0).getDate();
+  const dimPrev = new Date(calY, calM, 0).getDate();
+  const today   = new Date();
+  const total   = Math.ceil((dow + dim) / 7) * 7;
+
+  let html = '';
+  for (let i = 0; i < total; i++) {
+    let day, mo, yr, other = false;
+    if (i < dow) {
+      day = dimPrev - dow + i + 1; mo = calM - 1; yr = calY;
+      if (mo < 0) { mo = 11; yr--; }
+      other = true;
+    } else if (i >= dow + dim) {
+      day = i - dow - dim + 1; mo = calM + 1; yr = calY;
+      if (mo > 11) { mo = 0; yr++; }
+      other = true;
+    } else {
+      day = i - dow + 1; mo = calM; yr = calY;
+    }
+
+    const isToday = !other && yr === today.getFullYear() && mo === today.getMonth() && day === today.getDate();
+    const k = yr + '-' + mo + '-' + day;
+    const evts = map[k] || [];
+
+    const numH = isToday
+      ? `<div class="cdnum"><span class="today-pill">${day}</span></div>`
+      : `<div class="cdnum">${day}</div>`;
+
+    const MAX = 3;
+    const evH = evts.slice(0, MAX).map(r => {
+      const safe = encodeURIComponent(JSON.stringify(r));
+      return `<div class="cev ${CAL_CLS[cls(r.status)]}" onclick="event.stopPropagation();openCalEv('${safe}')" title="${x(r.customer)} ${x(r.product)}">${x(r.customer)} ${x(r.product)}</div>`;
+    }).join('');
+    const moreH = evts.length > MAX ? `<div class="cmore">+${evts.length - MAX}</div>` : '';
+
+    html += `<div class="cday${other?' om':''}${isToday?' td':''}">${numH}${evH}${moreH}</div>`;
+  }
+
+  // If no data yet, show placeholder message inside grid
+  if (!allRows.length && !html.includes('cev')) {
+    // Still render the grid, just cells are empty — this is fine
+  }
+
+  document.getElementById('calBody').innerHTML = html;
+}
+
+function openCalEv(safe) {
+  try { showModal(JSON.parse(decodeURIComponent(safe))); } catch(e) {}
+}
+
+// ══ Helpers ═══════════════════════════════════════════════════
+function x(s) {
+  if (!s || s === '—') return '—';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function $(id, v) { const el = document.getElementById(id); if (el) el.innerHTML = v; }
+function setLoading() { $('tbody', `<tr><td colspan="11"><div class="loading"><div class="spin"></div>載入中…</div></td></tr>`); }
+function showMsg(m) { $('tbody', `<tr><td colspan="11"><div class="empty"><div class="empty-icon">📄</div><div>${m}</div></div></td></tr>`); }
+</script>
+</body>
+</html>
