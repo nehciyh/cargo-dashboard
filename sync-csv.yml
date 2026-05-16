@@ -2,14 +2,12 @@ name: 同步 CSV 資料
 
 on:
   schedule:
-    # 每30分鐘執行一次（UTC時間，台灣時間 = UTC+8）
     - cron: '*/30 * * * *'
-  workflow_dispatch:  # 允許手動觸發
+  workflow_dispatch:
 
 jobs:
   sync-csv:
     runs-on: ubuntu-latest
-
     steps:
       - name: 取出 Repository 內容
         uses: actions/checkout@v4
@@ -18,30 +16,37 @@ jobs:
 
       - name: 下載最新 CSV
         run: |
-          # 從 OneDrive 公開連結下載 CSV
-          # ONEDRIVE_URL 是你設定在 GitHub Secrets 的變數
           curl -L "${{ secrets.ONEDRIVE_CSV_URL }}" \
-            -H "Accept: text/csv" \
-            --max-time 30 \
+            -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
+            -H "Accept: text/csv,text/plain,*/*" \
+            -H "Accept-Language: zh-TW,zh;q=0.9,en;q=0.8" \
+            --max-time 60 \
             --retry 3 \
+            --retry-delay 5 \
             -o data.csv
 
-          # 確認檔案有內容
-          if [ ! -s data.csv ]; then
-            echo "下載的檔案是空的，終止更新"
+          # 確認下載的是 CSV 而不是 HTML 錯誤頁面
+          FIRST_LINE=$(head -c 100 data.csv)
+          if echo "$FIRST_LINE" | grep -qi "<!DOCTYPE\|<html\|blocked\|error"; then
+            echo "❌ 下載到的是 HTML 錯誤頁面，不是 CSV"
+            echo "內容前100字：$FIRST_LINE"
             exit 1
           fi
 
-          echo "CSV 下載成功，行數：$(wc -l < data.csv)"
+          if [ ! -s data.csv ]; then
+            echo "❌ 檔案是空的"
+            exit 1
+          fi
+
+          echo "✅ 下載成功，行數：$(wc -l < data.csv)"
+          echo "前兩行內容："
+          head -2 data.csv
 
       - name: 推送更新到 GitHub
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-
           git add data.csv
-
-          # 只有在 CSV 有變動時才 commit
           if git diff --staged --quiet; then
             echo "資料無變動，略過 commit"
           else
